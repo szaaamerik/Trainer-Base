@@ -8,12 +8,12 @@ namespace TrainerBase;
 
 public class Cheats(MainWindow mainWindow)
 {
-    private readonly Mem _mem = new();
+    public readonly Mem Mem = new();
 
     public void SetupAttach()
     {
         Process.EnterDebugMode();
-        if (_mem.OpenProcess(MainWindow.ProcessName) == Mem.OpenProcessResults.Success)
+        if (Mem.OpenProcess(MainWindow.ProcessName) == Mem.OpenProcessResults.Success)
         {
             HandleOpenGame();
             SetupExit();
@@ -35,7 +35,7 @@ public class Cheats(MainWindow mainWindow)
             }
 
             Process.EnterDebugMode();
-            var result = _mem.OpenProcess(MainWindow.ProcessName);
+            var result = Mem.OpenProcess(MainWindow.ProcessName);
             Process.LeaveDebugMode();
             if (result != Mem.OpenProcessResults.Success) return;
             HandleOpenGame();
@@ -47,8 +47,8 @@ public class Cheats(MainWindow mainWindow)
     
     private void SetupExit()
     {
-        _mem.MProc.Process.EnableRaisingEvents = true;
-        _mem.MProc.Process.Exited += (_, _) => HandleCloseGame();
+        Mem.MProc.Process.EnableRaisingEvents = true;
+        Mem.MProc.Process.Exited += (_, _) => HandleCloseGame();
     }
     
     private void HandleOpenGame()
@@ -62,7 +62,7 @@ public class Cheats(MainWindow mainWindow)
         {
             mainWindow.GameStatusLabel.Foreground = Brushes.Green;
             mainWindow.GameStatusLabel.Text = "On";
-            mainWindow.ProcessIdLabel.Text = _mem.MProc.ProcessId.ToString();
+            mainWindow.ProcessIdLabel.Text = Mem.MProc.ProcessId.ToString();
         });
         
         mainWindow.ViewModel.Attached = true;
@@ -92,14 +92,14 @@ public class Cheats(MainWindow mainWindow)
 
     public void TrainerClose()
     {
-        Imports.CloseHandle(_mem.MProc.Handle);
+        Imports.CloseHandle(Mem.MProc.Handle);
     }
 
     private async Task<nuint> SmartAobScan(string search, UIntPtr? start = null, UIntPtr? end = null)
     {
-        var handle = _mem.MProc.Handle;
-        var minRange = (long)_mem.MProc.Process.MainModule!.BaseAddress;
-        var maxRange = minRange + _mem.MProc.Process.MainModule!.ModuleMemorySize;
+        var handle = Mem.MProc.Handle;
+        var minRange = (long)Mem.MProc.Process.MainModule!.BaseAddress;
+        var maxRange = minRange + Mem.MProc.Process.MainModule!.ModuleMemorySize;
 
         if (start != null)
         {
@@ -134,7 +134,7 @@ public class Cheats(MainWindow mainWindow)
                 }
                 else
                 {
-                    retAddress = (await _mem.AoBScan(scanStartAddr, scanEndAddr, search)).FirstOrDefault();
+                    retAddress = (await Mem.AoBScan(scanStartAddr, scanEndAddr, search)).FirstOrDefault();
                 }
 
                 if (retAddress != 0)
@@ -157,7 +157,7 @@ public class Cheats(MainWindow mainWindow)
     private async Task<nuint> ScanRange(string search, long startAddr, long endAddr)
     {
         var end = startAddr + (endAddr - startAddr) / 2;
-        var retAddress = (await _mem.AoBScan(startAddr, end, search)).FirstOrDefault();
+        var retAddress = (await Mem.AoBScan(startAddr, end, search)).FirstOrDefault();
         return retAddress;
     }
 
